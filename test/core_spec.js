@@ -1,7 +1,7 @@
 import {List, Map} from 'immutable';
 import {expect} from 'chai';
 
-import {setEntries} from '../src/core';
+import {setEntries, next, vote} from '../src/core';
 
 describe('application logic', () => {
 
@@ -18,6 +18,129 @@ describe('application logic', () => {
             }));
         });
 
-    }); 
+        it('converts to immutable', () => {
+            const state = Map();
+            const entries = ['Trainspotting', '28 Days Later'];
+
+            const nextState = setEntries(state, entries);
+
+            expect(nextState).to.equal(Map({
+                entries: List.of('Trainspotting', '28 Days Later')
+            }));
+        });
+
+    });
+
+    describe('next', () => {
+
+        it('takes the next two entries under vote', () => {
+            const state = Map({
+                entries: List.of('Trainspotting', '28 Days Later', 'Sunshine')
+            });
+            const nextState = next(state);
+            expect(nextState).to.equal(Map({
+                vote: Map({
+                    pair: List.of('Trainspotting', '28 Days Later')
+                }),
+                entries: List.of('Sunshine')
+            }));
+        });
+
+        it('puts winner back in entries', () => {
+            const state = Map({
+                vote: Map({
+                    pair: List.of('Trainspotting', '28 Days Later'),
+                    tally: Map({
+                        'Trainspotting': 2,
+                        '28 Days Later': 1
+                    })
+                }),
+                entries: List.of('Sunshine', 'Millions')
+            });
+
+            const nextState = next(state);
+
+            expect(nextState).to.equal(Map({
+                vote: Map({
+                    pair: List.of('Sunshine', 'Millions')
+                }),
+                entries: List.of('Trainspotting')
+            }));
+        });
+
+        it('puts both from tied vote back into entries', () => {
+            const state = Map({
+                vote: Map({
+                    pair: List.of('Trainspotting', '28 Days Later'),
+                    tally: Map({
+                        'Trainspotting': 2,
+                        '28 Days Later': 2
+                    })
+                }),
+                entries: List.of('Sunshine', 'Millions')
+            });
+
+            const nextState = next(state);
+
+            expect(nextState).to.equal(Map({
+                vote: Map({
+                    pair: List.of('Sunshine', 'Millions')
+                }),
+                entries: List.of('Trainspotting', '28 Days Later')
+            }));
+        });
+
+    });
+
+    describe('vote', () => {
+
+        it('creates a tally for the voted entry', () => {
+            const state = Map({
+                vote: Map({
+                    pair: List.of('Trainspotting', '28 Days Later')
+                }),
+                entries: List()
+            });
+
+            const nextState = vote(state, 'Trainspotting');
+
+            expect(nextState).to.equal(Map({
+                vote: Map({
+                    pair: List.of('Trainspotting', '28 Days Later'),
+                    tally: Map({
+                        Trainspotting: 1
+                    })
+                }),
+                entries: List()
+            }));
+        });
+
+        it('adds to an exising tally', () => {
+            const state = Map({
+                vote: Map({
+                    pair: List.of('Trainspotting', '28 Days Later'),
+                    tally: Map({
+                        'Trainspotting': 3,
+                        '28 Days Later': 3
+                    })
+                }),
+                entries: List()
+            });
+
+            const nextState = vote(state, 'Trainspotting');
+
+            expect(nextState).to.equal(Map({
+                vote: Map({
+                    pair: List.of('Trainspotting', '28 Days Later'),
+                    tally: Map({
+                        'Trainspotting': 4,
+                        '28 Days Later': 3
+                    })
+                }),
+                entries: List()
+            }));
+        });
+
+    });
 
 });
