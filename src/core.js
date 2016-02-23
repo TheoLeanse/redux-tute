@@ -33,9 +33,9 @@ export function next(state) {
     }
 };
 
-export function vote(state, winner) {
-    return state.updateIn(
-        ['vote', 'tally', winner],
+export function vote(voteState, winner) {
+    return voteState.updateIn(
+        ['tally', winner],
         0,
         tally => tally + 1
     );
