@@ -20,7 +20,7 @@ describe('reducer', () => {
         const initialState = fromJS({
             entries: ['Trainspotting', '28 Days Later']
         });
-        const action = 'NEXT';
+        const action = {type: 'NEXT'};
 
         const nextState = reducer(initialState, action);
 
